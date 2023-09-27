@@ -41,7 +41,7 @@ namespace dotnet_rpg.Services.CharacterService
                 serviceResponse.Data = _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             }
             catch (Exception ex){
-                serviceResponse.Sucess = false;
+                serviceResponse.Success = false;
                 serviceResponse.Message = ex.Message;
             }
             return serviceResponse;
@@ -84,7 +84,7 @@ namespace dotnet_rpg.Services.CharacterService
                 serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
             }
             catch (Exception ex){
-                serviceResponse.Sucess = false;
+                serviceResponse.Success = false;
                 serviceResponse.Message = ex.Message;
             }
 
