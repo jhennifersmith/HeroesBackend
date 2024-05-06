@@ -3,11 +3,10 @@ using System.Text.Json.Serialization;
 namespace dotnet_rpg.Models
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum RpgClass
+    public enum Duration
     {
-       Knight =1,
-       Mage = 2,
-       Cleric = 3,
-       Druid = 4
+       Month =1,
+       Week = 2,
+       Day = 3,
     }
 }
