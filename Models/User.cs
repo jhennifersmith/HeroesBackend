@@ -12,5 +12,6 @@ namespace dotnet_rpg.Models
         public byte[] PasswordHash { get; set; } = new byte[0];
         public byte[] PasswordSalt { get; set; } = new byte[0]; 
         public List<Character>? Characters { get; set; }
+        public List<UserTask>? UserTasks { get; set; }
     }
 }

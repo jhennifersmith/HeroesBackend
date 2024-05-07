@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace dotnet_rpg.Data
 {
@@ -14,5 +13,6 @@ namespace dotnet_rpg.Data
 
         public DbSet<Character> Characters => Set<Character>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<UserTask> UserTasks => Set<UserTask>();
     }
 }

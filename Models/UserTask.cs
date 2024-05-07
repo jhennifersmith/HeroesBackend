@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace dotnet_rpg.Models
 {
-    public class Task
+    public class UserTask
     {
         public int Id { get; set; }
         public string Title { get; set; } = "";
@@ -13,6 +13,6 @@ namespace dotnet_rpg.Models
         public Duration? Duration { get; set; }
         public bool Status { get; set; }
         public DateTime CreationDate { get; set; }
-
+        public User? User { get; set; }
     }
 }
