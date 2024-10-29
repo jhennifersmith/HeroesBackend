@@ -11,6 +11,7 @@ namespace dotnet_rpg.Models
         public string Title { get; set; } = "";
         public Category? Category { get; set; }
         public Duration? Duration { get; set; }
+        public DateTime? LastCompletedDate { get; set; }
         public bool Status { get; set; }
         public DateTime CreationDate { get; set; }
         public User? User { get; set; }

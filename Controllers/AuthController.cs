@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace dotnet_rpg.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("auth")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthRepository _authRepo;
@@ -30,7 +30,7 @@ namespace dotnet_rpg.Controllers
             return Ok(response);
         }
 
-        [HttpPost("Login")]
+        [HttpPost("login")]
         public async Task<ActionResult<ServiceResponse<int>>> Login (UserLoginDto request)
         {
             var response = await _authRepo.Login( request.Username, request.Password);

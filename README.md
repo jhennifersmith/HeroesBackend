@@ -14,3 +14,12 @@ Content learned:
 - Advanced Relanshionships with EF Core
 	- One-to-one, one-to-many, many-to-may
 - Automatic fights & highscore
+
+# Migrations
+- dotnet build: Compila o projeto.
+- dotnet run: Executa o projeto atual.
+- dotnet ef migrations add <MigrationName>: Cria uma nova migration com o nome especificado.
+- dotnet ef migrations remove: Remove a última migration.
+- dotnet ef migrations list: Lista todas as migrations aplicadas.
+- dotnet ef database update: Aplica as migrations pendentes ao banco de dados.
+- dotnet ef database update <MigrationName>: Aplica as migrations até a migration especificada.
