@@ -61,14 +61,14 @@ namespace dotnet_rpg.Services.UserTaskService
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<GetUserTaskDto>>> GetAllUserTasks()
-        {
-            var serviceResponse = new ServiceResponse<List<GetUserTaskDto>>();
-            var dbTasks = await _context.UserTasks
-            .Where(c => c.User!.Id == GetUserId()).ToListAsync();
-            serviceResponse.Data = dbTasks.Select(c => _mapper.Map<GetUserTaskDto>(c)).ToList();
-            return serviceResponse;
-        }
+        // public async Task<ServiceResponse<List<GetUserTaskDto>>> GetAllUserTasks()
+        // {
+        //     var serviceResponse = new ServiceResponse<List<GetUserTaskDto>>();
+        //     var dbTasks = await _context.UserTasks
+        //     .Where(c => c.User!.Id == GetUserId()).ToListAsync();
+        //     serviceResponse.Data = dbTasks.Select(c => _mapper.Map<GetUserTaskDto>(c)).ToList();
+        //     return serviceResponse;
+        // }
 
         public async Task<ServiceResponse<List<GetUserTaskDto>>> GetAllUserTasks()
         {
