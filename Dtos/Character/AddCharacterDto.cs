@@ -13,5 +13,6 @@ namespace dotnet_rpg.Dtos.Character
         public int Defense { get; set; } = 10;
         public int Intelligence { get; set; } = 10;
         public int Experience { get; set; } = 0;
+        public int Level {get; set;} = 1;
     }
 }

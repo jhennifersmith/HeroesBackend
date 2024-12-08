@@ -22,7 +22,7 @@ namespace dotnet_rpg.Services.UserTaskService
 
         private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext!.User
             .FindFirstValue(ClaimTypes.NameIdentifier)!);
-      
+
         public async Task<ServiceResponse<List<GetUserTaskDto>>> AddUserTask(AddUserTaskDto newUserTask)
         {
             var serviceResponse = new ServiceResponse<List<GetUserTaskDto>>();
@@ -30,10 +30,10 @@ namespace dotnet_rpg.Services.UserTaskService
             task.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
             _context.UserTasks.Add(task);
             await _context.SaveChangesAsync();
-            serviceResponse.Data = 
+            serviceResponse.Data =
                 await _context.UserTasks
                 .Where(c => c.User!.Id == GetUserId())
-                .Select( c => _mapper.Map<GetUserTaskDto>(c))
+                .Select(c => _mapper.Map<GetUserTaskDto>(c))
                 .ToListAsync();
             return serviceResponse;
         }
@@ -42,11 +42,13 @@ namespace dotnet_rpg.Services.UserTaskService
         {
             var serviceResponse = new ServiceResponse<List<GetUserTaskDto>>();
 
-            try{
+            try
+            {
                 var task = _context.UserTasks
                 .FirstOrDefault(c => c.Id == id && c.User!.Id == GetUserId());
-                if (task is null){
-                    throw new Exception ($"Task with Id '{id}' not found.");
+                if (task is null)
+                {
+                    throw new Exception($"Task with Id '{id}' not found.");
                 }
                 _context.UserTasks.Remove(task);
                 await _context.SaveChangesAsync();
@@ -54,7 +56,8 @@ namespace dotnet_rpg.Services.UserTaskService
                 .Where(c => c.User!.Id == GetUserId())
                 .Select(c => _mapper.Map<GetUserTaskDto>(c)).ToList();
             }
-            catch (Exception ex){
+            catch (Exception ex)
+            {
                 serviceResponse.Success = false;
                 serviceResponse.Message = ex.Message;
             }
@@ -74,25 +77,21 @@ namespace dotnet_rpg.Services.UserTaskService
         {
             var serviceResponse = new ServiceResponse<List<GetUserTaskDto>>();
 
-            // Obt�m todas as tarefas do usu�rio atual
             var dbTasks = await _context.UserTasks
                 .Where(c => c.User!.Id == GetUserId())
                 .ToListAsync();
 
-            // Verifica se cada tarefa precisa ser resetada com base na dura��o
             foreach (var task in dbTasks)
             {
                 if (NeedsReset(task))
                 {
-                    task.Status = false; // Marca como incompleta
-                    task.LastCompletedDate = null; // Reseta a data de conclus�o
+                    task.Status = false; 
+                    task.LastCompletedDate = null; 
                 }
             }
 
-            // Salva as altera��es se houver alguma tarefa que foi resetada
             await _context.SaveChangesAsync();
 
-            // Mapeia as tarefas para o DTO
             serviceResponse.Data = dbTasks.Select(c => _mapper.Map<GetUserTaskDto>(c)).ToList();
 
             return serviceResponse;
@@ -110,23 +109,26 @@ namespace dotnet_rpg.Services.UserTaskService
         public async Task<ServiceResponse<GetUserTaskDto>> UpdateUserTask(UpdateUserTaskDto updatedUserTask)
         {
             var serviceResponse = new ServiceResponse<GetUserTaskDto>();
-            try{
+            try
+            {
                 var task = await _context.UserTasks
                 .Include(c => c.User)
                 .FirstOrDefaultAsync(c => c.Id == updatedUserTask.Id);
-                if (task is null || task.User!.Id != GetUserId()){
-                    throw new Exception ($"Task with Id '{updatedUserTask.Id}' not found.");
+                if (task is null || task.User!.Id != GetUserId())
+                {
+                    throw new Exception($"Task with Id '{updatedUserTask.Id}' not found.");
                 }
 
                 task.Category = updatedUserTask.Category;
                 task.CreationDate = updatedUserTask.CreationDate;
                 task.Duration = updatedUserTask.Duration;
-                task.Status = updatedUserTask.Status; 
+                task.Status = updatedUserTask.Status;
                 task.Title = updatedUserTask.Title;
                 await _context.SaveChangesAsync();
                 serviceResponse.Data = _mapper.Map<GetUserTaskDto>(task);
             }
-            catch (Exception ex){
+            catch (Exception ex)
+            {
                 serviceResponse.Success = false;
                 serviceResponse.Message = ex.Message;
             }
@@ -148,13 +150,14 @@ namespace dotnet_rpg.Services.UserTaskService
                     throw new Exception($"Task with Id '{taskId}' not found.");
                 }
 
-                // Verifique se a tarefa est� marcada como conclu�da
-                if (!task.Status)
+                if (task.Status)
                 {
-                    throw new Exception($"Task '{task.Title}' has not been completed yet.");
+                    throw new Exception($"Task '{task.Title}' has already been completed.");
                 }
 
-                // Atualizar o personagem do usu�rio
+                task.Status = true;
+                await _context.SaveChangesAsync(); 
+
                 var character = await _context.Characters
                     .FirstOrDefaultAsync(c => c.User!.Id == GetUserId());
 
@@ -163,24 +166,33 @@ namespace dotnet_rpg.Services.UserTaskService
                     throw new Exception("Character not found.");
                 }
 
-                // Aplicar pontua��o com base na categoria e frequ�ncia da tarefa
+                int points = 0;
                 switch (task.Category)
                 {
                     case Category.Study:
-                        character.Intelligence += CalculatePoints(task.Duration);
+                        points = CalculatePoints(task.Duration);
+                        character.Intelligence += points;
                         break;
                     case Category.Workout:
-                        character.Strenght += CalculatePoints(task.Duration);
+                        points = CalculatePoints(task.Duration);
+                        character.Strenght += points;
                         break;
                     case Category.Habit:
-                        character.Defense += CalculatePoints(task.Duration);
+                        points = CalculatePoints(task.Duration);
+                        character.Defense += points;
                         break;
                 }
 
-                // Salvar as altera��es
+                character.Experience += points;
+
+                if (character.Experience >= 100)
+                {
+                    character.Level += 1;
+                    character.Experience = 0; 
+                }
+
                 await _context.SaveChangesAsync();
 
-                // Retornar a tarefa atualizada
                 serviceResponse.Data = _mapper.Map<GetUserTaskDto>(task);
             }
             catch (Exception ex)
@@ -192,14 +204,39 @@ namespace dotnet_rpg.Services.UserTaskService
             return serviceResponse;
         }
 
-        // M�todo para calcular os pontos com base na frequ�ncia
+        private int CalculateExperienceForNextLevel(int level)
+        {
+            return 100 + (level * 50);
+        }
+
+        private int CalculateExperienceGain(Duration? duration, Category? category)
+        {
+            int baseXp = duration switch
+            {
+                Duration.Day => 5,   
+                Duration.Week => 10,  
+                Duration.Month => 20,    
+                _ => 0
+            };
+
+            double multiplier = category switch
+            {
+                Category.Study => 1.2,     
+                Category.Workout => 1.1,   
+                Category.Habit => 1.05,    
+                _ => 1.0
+            };
+
+            return (int)(baseXp * multiplier);
+        }
+
         private int CalculatePoints(Duration? frequency)
         {
             return frequency switch
             {
-                Duration.Day => 10,  // Exemplo de pontua��o para tarefa di�ria
-                Duration.Week => 25, // Exemplo de pontua��o para tarefa semanal
-                Duration.Month => 50,  // Exemplo de pontua��o para tarefa mensal
+                Duration.Day => 10,  
+                Duration.Week => 25, 
+                Duration.Month => 50, 
                 _ => 0
             };
         }
@@ -208,7 +245,7 @@ namespace dotnet_rpg.Services.UserTaskService
         {
             if (task.LastCompletedDate == null)
             {
-                return false; // Se nunca foi completada, n�o h� necessidade de resetar.
+                return false; 
             }
 
             var now = DateTime.Now;

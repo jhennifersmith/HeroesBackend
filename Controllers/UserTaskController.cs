@@ -22,11 +22,11 @@ namespace dotnet_rpg.Controllers
         {
             _userTaskService = userTaskService;
         }
-        
+
         [HttpGet("GetAll")]
         public async Task<ActionResult<ServiceResponse<GetUserTaskDto>>> GetAll()
         {
-            return Ok( await _userTaskService.GetAllUserTasks());
+            return Ok(await _userTaskService.GetAllUserTasks());
         }
 
         [HttpGet("{id}")]
@@ -35,16 +35,17 @@ namespace dotnet_rpg.Controllers
             return Ok(await _userTaskService.GetUserTaskById(id));
         }
         [HttpPost]
-        public async Task<ActionResult<ServiceResponse<List<GetUserTaskDto>>>> AddUserTask (AddUserTaskDto newUserTask)
+        public async Task<ActionResult<ServiceResponse<List<GetUserTaskDto>>>> AddUserTask(AddUserTaskDto newUserTask)
         {
-           return Ok(await _userTaskService.AddUserTask(newUserTask));
+            return Ok(await _userTaskService.AddUserTask(newUserTask));
         }
 
         [HttpPut]
-        public async Task<ActionResult<ServiceResponse<List<GetUserTaskDto>>>> UpdateUserTask (UpdateUserTaskDto updatedUserTask)
+        public async Task<ActionResult<ServiceResponse<List<GetUserTaskDto>>>> UpdateUserTask(UpdateUserTaskDto updatedUserTask)
         {
             var response = await _userTaskService.UpdateUserTask(updatedUserTask);
-            if (response.Data is null){
+            if (response.Data is null)
+            {
                 return NotFound(response);
             }
             return Ok(response);
@@ -52,9 +53,20 @@ namespace dotnet_rpg.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<ServiceResponse<GetUserTaskDto>>> DeleteUserTask(int id)
         {
-             var response = await _userTaskService.DeleteUserTask(id);
-            if (response.Data is null){
+            var response = await _userTaskService.DeleteUserTask(id);
+            if (response.Data is null)
+            {
                 return NotFound(response);
+            }
+            return Ok(response);
+        }
+        [HttpPost("complete/{taskId}")]
+        public async Task<IActionResult> CompleteTask(int taskId)
+        {
+            var response = await _userTaskService.CompleteUserTask(taskId);
+            if (!response.Success)
+            {
+                return BadRequest(response);
             }
             return Ok(response);
         }
