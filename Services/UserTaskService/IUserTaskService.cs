@@ -13,6 +13,6 @@ namespace dotnet_rpg.Services.UserTaskService
         Task<ServiceResponse<List<GetUserTaskDto>>> AddUserTask(AddUserTaskDto newUserTask);
         Task<ServiceResponse<GetUserTaskDto>> UpdateUserTask(UpdateUserTaskDto updatedUserTask);
         Task<ServiceResponse<List<GetUserTaskDto>>> DeleteUserTask(int id);
-        Task<ServiceResponse<GetUserTaskDto>> CompleteUserTask(int taskId);
+        Task<ServiceResponse<CompleteTaskResponseDto>> CompleteUserTask(int taskId);
     }
 }

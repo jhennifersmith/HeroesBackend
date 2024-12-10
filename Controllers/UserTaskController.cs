@@ -60,7 +60,8 @@ namespace dotnet_rpg.Controllers
             }
             return Ok(response);
         }
-        [HttpPost("complete/{taskId}")]
+
+        [HttpPut("complete/{taskId}")]
         public async Task<IActionResult> CompleteTask(int taskId)
         {
             var response = await _userTaskService.CompleteUserTask(taskId);
@@ -68,8 +69,10 @@ namespace dotnet_rpg.Controllers
             {
                 return BadRequest(response);
             }
-            return Ok(response);
+
+            return Ok(response.Data);
         }
+
 
     }
 }

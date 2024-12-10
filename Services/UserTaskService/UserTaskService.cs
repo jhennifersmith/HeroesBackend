@@ -64,15 +64,6 @@ namespace dotnet_rpg.Services.UserTaskService
             return serviceResponse;
         }
 
-        // public async Task<ServiceResponse<List<GetUserTaskDto>>> GetAllUserTasks()
-        // {
-        //     var serviceResponse = new ServiceResponse<List<GetUserTaskDto>>();
-        //     var dbTasks = await _context.UserTasks
-        //     .Where(c => c.User!.Id == GetUserId()).ToListAsync();
-        //     serviceResponse.Data = dbTasks.Select(c => _mapper.Map<GetUserTaskDto>(c)).ToList();
-        //     return serviceResponse;
-        // }
-
         public async Task<ServiceResponse<List<GetUserTaskDto>>> GetAllUserTasks()
         {
             var serviceResponse = new ServiceResponse<List<GetUserTaskDto>>();
@@ -85,8 +76,8 @@ namespace dotnet_rpg.Services.UserTaskService
             {
                 if (NeedsReset(task))
                 {
-                    task.Status = false; 
-                    task.LastCompletedDate = null; 
+                    task.Status = false;
+                    task.LastCompletedDate = null;
                 }
             }
 
@@ -136,9 +127,9 @@ namespace dotnet_rpg.Services.UserTaskService
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<GetUserTaskDto>> CompleteUserTask(int taskId)
+        public async Task<ServiceResponse<CompleteTaskResponseDto>> CompleteUserTask(int taskId)
         {
-            var serviceResponse = new ServiceResponse<GetUserTaskDto>();
+            var serviceResponse = new ServiceResponse<CompleteTaskResponseDto>();
             try
             {
                 var task = await _context.UserTasks
@@ -156,7 +147,7 @@ namespace dotnet_rpg.Services.UserTaskService
                 }
 
                 task.Status = true;
-                await _context.SaveChangesAsync(); 
+                await _context.SaveChangesAsync();
 
                 var character = await _context.Characters
                     .FirstOrDefaultAsync(c => c.User!.Id == GetUserId());
@@ -166,34 +157,51 @@ namespace dotnet_rpg.Services.UserTaskService
                     throw new Exception("Character not found.");
                 }
 
-                int points = 0;
+                int points = CalculatePoints(task.Duration);
+                int expGained = points;
+                int levelUpCount = 0;
+
+                var attributesGained = new AttributesDto { Strength = 0, Defense = 0, Intelligence = 0, HitPoints = 0 };
+
                 switch (task.Category)
                 {
                     case Category.Study:
-                        points = CalculatePoints(task.Duration);
+                        attributesGained.Intelligence = points;
                         character.Intelligence += points;
                         break;
                     case Category.Workout:
-                        points = CalculatePoints(task.Duration);
+                        attributesGained.Strength = points;
+                        attributesGained.HitPoints = points;
                         character.Strenght += points;
+                        character.HitPoints += points;
                         break;
                     case Category.Habit:
-                        points = CalculatePoints(task.Duration);
+                        attributesGained.Defense = points;
+                        attributesGained.HitPoints = points;
                         character.Defense += points;
+                        character.HitPoints += points;
                         break;
                 }
 
-                character.Experience += points;
+                character.Experience += expGained;
 
-                if (character.Experience >= 100)
+                while (character.Experience >= 100)
                 {
                     character.Level += 1;
-                    character.Experience = 0; 
+                    character.Experience -= 100;
+                    levelUpCount++;
                 }
 
                 await _context.SaveChangesAsync();
 
-                serviceResponse.Data = _mapper.Map<GetUserTaskDto>(task);
+                serviceResponse.Data = new CompleteTaskResponseDto
+                {
+                    TaskId = task.Id,
+                    TaskTitle = task.Title,
+                    AttributesGained = attributesGained,
+                    ExperienceGained = expGained,
+                    LevelUpCount = levelUpCount
+                };
             }
             catch (Exception ex)
             {
@@ -204,39 +212,13 @@ namespace dotnet_rpg.Services.UserTaskService
             return serviceResponse;
         }
 
-        private int CalculateExperienceForNextLevel(int level)
-        {
-            return 100 + (level * 50);
-        }
-
-        private int CalculateExperienceGain(Duration? duration, Category? category)
-        {
-            int baseXp = duration switch
-            {
-                Duration.Day => 5,   
-                Duration.Week => 10,  
-                Duration.Month => 20,    
-                _ => 0
-            };
-
-            double multiplier = category switch
-            {
-                Category.Study => 1.2,     
-                Category.Workout => 1.1,   
-                Category.Habit => 1.05,    
-                _ => 1.0
-            };
-
-            return (int)(baseXp * multiplier);
-        }
-
         private int CalculatePoints(Duration? frequency)
         {
             return frequency switch
             {
-                Duration.Day => 10,  
-                Duration.Week => 25, 
-                Duration.Month => 50, 
+                Duration.Dia => 10,
+                Duration.Semana => 25,
+                Duration.Mes => 50,
                 _ => 0
             };
         }
@@ -245,18 +227,18 @@ namespace dotnet_rpg.Services.UserTaskService
         {
             if (task.LastCompletedDate == null)
             {
-                return false; 
+                return false;
             }
 
             var now = DateTime.Now;
 
             switch (task.Duration)
             {
-                case Duration.Day:
+                case Duration.Dia:
                     return (now - task.LastCompletedDate.Value).TotalDays >= 1;
-                case Duration.Week:
+                case Duration.Semana:
                     return (now - task.LastCompletedDate.Value).TotalDays >= 7;
-                case Duration.Month:
+                case Duration.Mes:
                     return (now - task.LastCompletedDate.Value).TotalDays >= 30;
                 default:
                     return false;
