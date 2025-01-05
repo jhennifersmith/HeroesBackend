@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dotnet_rpg.Data;
 
@@ -11,9 +12,11 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241220002425_AddCombat")]
+    partial class AddCombat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -113,8 +116,9 @@ namespace dotnetrpg.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Strength")
-                        .HasColumnType("int");
+                    b.Property<string>("Strength")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -156,20 +160,11 @@ namespace dotnetrpg.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CurrentCharacterHealth")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CurrentMonsterHealth")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
 
                     b.Property<int>("MissionId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("MisssionFailed")
-                        .HasColumnType("bit");
 
                     b.Property<int>("Progress")
                         .HasColumnType("int");
